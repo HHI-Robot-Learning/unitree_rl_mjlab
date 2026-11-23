@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run scripts/train.py inside the image on one BER1 B200. Arguments go to train.py.
+# Run scripts/train.py in the runtime (see cluster/runtime.sh) on one BER1 B200. Arguments go to train.py.
 # Submitted from the repo root on BER1 through the shared wrapper:
 #
 #   ~/scheduling/submit.sh 'bash cluster/train_ber1.sh Unitree-G1-Flat --env.scene.num-envs=4096'
@@ -10,7 +10,7 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-IMAGE="$REPO/unitree_rl_mjlab.sif"
+source "$REPO/cluster/runtime.sh"
 
 source /etc/slurm/local_job_dir.sh
 RUN_DIR="$LOCAL_JOB_DIR/run"
@@ -42,16 +42,9 @@ echo "== commit   $(git -C "$REPO" rev-parse --short HEAD)"
 echo "== scratch  $RUN_DIR"
 echo "== train.py $*"
 
-run_in_image() {
-    apptainer exec --nv \
-        --home "$CONTAINER_HOME" \
-        --bind "$REPO":/work/code \
-        --bind "$LOCAL_JOB_DIR" \
-        --pwd "$RUN_DIR" \
-        "$IMAGE" "$@"
-}
+RUNTIME_OPTIONS=(--home "$CONTAINER_HOME" --bind "$LOCAL_JOB_DIR" --pwd "$RUN_DIR")
 
-run_in_image python /work/code/cluster/verify_image.py --device
+run_in_runtime "$REPO/unitree_venv.sqfs" python /work/code/cluster/verify_image.py --device
 # In the background + wait, so a SIGTERM reaches the TERM trap instead of waiting for train.py.
-run_in_image python /work/code/scripts/train.py "$@" &
+run_in_runtime "$REPO/unitree_venv.sqfs" python /work/code/scripts/train.py "$@" &
 wait $!
