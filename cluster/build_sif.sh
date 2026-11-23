@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --partition=gpu,gpu5
+#SBATCH --partition=gpu1,gpu3,gpu4,gpu5
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=32G
 #SBATCH --time=02:00:00
