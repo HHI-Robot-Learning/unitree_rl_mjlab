@@ -1,53 +1,21 @@
-Bootstrap: docker
-From: ubuntu:22.04
+Bootstrap: localimage
+From: /data/cluster/users/mattes/26-MOGB/sgrl-ber1.sif
 
+# No %post: BER1 cannot run one (apparmor blocks the unprivileged user namespace),
+# so the venv is created by cluster/build_sif.sh before the build and only copied
+# in here. The base image provides Python 3.12 at /opt/uv-python, git, EGL and ffmpeg.
+#
 # Dependencies are baked in from uv.lock; the code is not. At runtime the repo is
 # bind-mounted at /work/code and put on PYTHONPATH, so code edits need no rebuild.
 # Rebuild only when pyproject.toml / uv.lock change.
-#
-# torch 2.11.0 from PyPI is the CUDA 13 build and ships its CUDA libraries as
-# wheels; `--nv` supplies the host driver (needs R580+, CUDA 13).
 
 %files
-    pyproject.toml           /opt/build/pyproject.toml
-    uv.lock                  /opt/build/uv.lock
-    .python-version          /opt/build/.python-version
-    cluster/verify_image.py  /opt/build/verify_image.py
-
-%post
-    set -eux
-    export DEBIAN_FRONTEND=noninteractive
-
-    # Rootless build: only one uid is mapped, so apt's `_apt` sandbox user does
-    # not resolve. Keep apt as root.
-    echo 'APT::Sandbox::User "root";' > /etc/apt/apt.conf.d/99-rootless-build
-
-    apt-get update
-    apt-get install -y --no-install-recommends \
-        ca-certificates curl git \
-        ffmpeg \
-        libgl1 libegl1 libgles2 libosmesa6 libglx-mesa0 \
-        libglib2.0-0 libgomp1
-    rm -rf /var/lib/apt/lists/*
-
-    export UV_INSTALL_DIR=/usr/local/bin
-    curl -LsSf https://astral.sh/uv/install.sh | sh
-
-    # --no-install-project: the `src` package comes from the bind mount, so an
-    # installed copy can never shadow the live code.
-    cd /opt/build
-    export UV_PROJECT_ENVIRONMENT=/opt/venv
-    export UV_PYTHON_INSTALL_DIR=/opt/uv-python
-    export UV_LINK_MODE=copy
-    uv sync --frozen --no-install-project --no-dev
-
-    # Fail the build, not the first job, if the torch in the image cannot run on a B200.
-    /opt/venv/bin/python /opt/build/verify_image.py
+    unitree_venv /opt/unitree_venv
 
 %environment
-    export PATH=/opt/venv/bin:$PATH
-    export VIRTUAL_ENV=/opt/venv
-    export PYTHONPATH=/work/code:$PYTHONPATH
+    export PATH=/opt/unitree_venv/bin:$PATH
+    export VIRTUAL_ENV=/opt/unitree_venv
+    export PYTHONPATH=/work/code
     export PYTHONUNBUFFERED=1
     export MUJOCO_GL=egl
     export PYOPENGL_PLATFORM=egl
