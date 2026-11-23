@@ -42,13 +42,13 @@ Mjlab 结合了 [Isaac Lab](https://github.com/isaac-sim/IsaacLab) 的成熟高�
 运行以下命令进行速度跟踪训练：
 
 ```bash
-python scripts/train.py Unitree-G1-Flat --env.scene.num-envs=4096
+uv run python scripts/train.py Unitree-G1-Flat --env.scene.num-envs=4096
 ```
 
 多 GPU 训练：使用 --gpu-ids 扩展到多块 GPU：
 
 ```bash
-python scripts/train.py Unitree-G1-Flat \
+uv run python scripts/train.py Unitree-G1-Flat \
   --gpu-ids 0 1 \
   --env.scene.num-envs=4096
 ```
@@ -76,7 +76,7 @@ python scripts/train.py Unitree-G1-Flat \
 将准备好的 csv 格式的动作文件保存在 mjlab/motions/g1/ 目录下，执行下面的指令将其转为训练可用的 npz 文件：
 
 ```bash
-python scripts/csv_to_npz.py \
+uv run python scripts/csv_to_npz.py \
 --input-file src/assets/motions/g1/dance1_subject2.csv \
 --output-name dance1_subject2.npz \
 --input-fps 30 \
@@ -91,7 +91,7 @@ python scripts/csv_to_npz.py \
 确保有可用的npz文件之后，执行以下指令进行训练：
 
 ```bash
-python scripts/train.py Unitree-G1-Tracking-No-State-Estimation --motion_file=src/assets/motions/g1/dance1_subject2.npz --env.scene.num-envs=4096
+uv run python scripts/train.py Unitree-G1-Tracking-No-State-Estimation --motion_file=src/assets/motions/g1/dance1_subject2.npz --env.scene.num-envs=4096
 ```
 
 可用任务:
@@ -123,12 +123,12 @@ python scripts/train.py Unitree-G1-Tracking-No-State-Estimation --motion_file=sr
 
 查看速度跟踪训练效果：
 ```bash
-python scripts/play.py Unitree-G1-Flat --checkpoint_file=logs/rsl_rl/g1_velocity/2026-xx-xx_xx-xx-xx/model_xx.pt
+uv run python scripts/play.py Unitree-G1-Flat --checkpoint_file=logs/rsl_rl/g1_velocity/2026-xx-xx_xx-xx-xx/model_xx.pt
 ```
 
 查看动作模仿训练效果：
 ```bash
-python scripts/play.py Unitree-G1-Tracking-No-State-Estimation --motion_file=src/assets/motions/g1/dance1_subject2.npz --checkpoint_file=logs/rsl_rl/g1_tracking/2026-xx-xx_xx-xx-xx/model_xx.pt
+uv run python scripts/play.py Unitree-G1-Tracking-No-State-Estimation --motion_file=src/assets/motions/g1/dance1_subject2.npz --checkpoint_file=logs/rsl_rl/g1_tracking/2026-xx-xx_xx-xx-xx/model_xx.pt
 ```
 
 **说明**：
